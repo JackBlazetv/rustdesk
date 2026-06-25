@@ -59,16 +59,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final isIncomingOnly = bind.isIncomingOnly();
-    return _buildBlock(
-        child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        buildLeftPane(context),
-        if (!isIncomingOnly) const VerticalDivider(width: 1),
-        if (!isIncomingOnly) Expanded(child: buildRightPane(context)),
-      ],
-    ));
+    return _buildBlock(child: buildLeftPane(context));
   }
 
   Widget _buildBlock({required Widget child}) {
@@ -77,107 +68,211 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   }
 
   Widget buildLeftPane(BuildContext context) {
-    final isIncomingOnly = bind.isIncomingOnly();
-    final isOutgoingOnly = bind.isOutgoingOnly();
-    final children = <Widget>[
-      if (!isOutgoingOnly) buildPresetPasswordWarning(),
-      if (bind.isCustomClient())
-        Align(
-          alignment: Alignment.center,
-          child: loadPowered(context),
-        ),
-      Align(
-        alignment: Alignment.center,
-        child: loadLogo(),
-      ),
-      buildTip(context),
-      if (!isOutgoingOnly) buildIDBoard(context),
-      if (!isOutgoingOnly) buildPasswordBoard(context),
-      FutureBuilder<Widget>(
-        future: Future.value(
-            Obx(() => buildHelpCards(stateGlobal.updateUrl.value))),
-        builder: (_, data) {
-          if (data.hasData) {
-            if (isIncomingOnly) {
-              if (isInHomePage()) {
-                Future.delayed(Duration(milliseconds: 300), () {
-                  _updateWindowSize();
-                });
-              }
-            }
-            return data.data!;
-          } else {
-            return const Offstage();
-          }
-        },
-      ),
-      buildPluginEntry(),
-    ];
-    if (isIncomingOnly) {
-      children.addAll([
-        Divider(),
-        OnlineStatusWidget(
-          onSvcStatusChanged: () {
-            if (isInHomePage()) {
-              Future.delayed(Duration(milliseconds: 300), () {
-                _updateWindowSize();
-              });
-            }
-          },
-        ).marginOnly(bottom: 6, right: 6)
-      ]);
-    }
+    final model = gFFI.serverModel;
     final textColor = Theme.of(context).textTheme.titleLarge?.color;
+    final subtitleColor = textColor?.withOpacity(0.5);
+
     return ChangeNotifierProvider.value(
-      value: gFFI.serverModel,
+      value: model,
       child: Container(
-        width: isIncomingOnly ? 280.0 : 200.0,
         color: Theme.of(context).colorScheme.background,
-        child: Stack(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Column(
-              children: [
-                SingleChildScrollView(
-                  controller: _leftPaneScrollController,
-                  child: Column(
-                    key: _childKey,
-                    children: children,
+            // Header: logo + nome + engrenagem
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 16, 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  loadLogo(),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      bind.mainGetAppNameSync(),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-                Expanded(child: Container())
-              ],
-            ),
-            if (isOutgoingOnly)
-              Positioned(
-                bottom: 6,
-                left: 12,
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: InkWell(
-                    child: Obx(
-                      () => Icon(
-                        Icons.settings,
-                        color: _editHover.value
-                            ? textColor
-                            : Colors.grey.withOpacity(0.5),
-                        size: 22,
+                  Tooltip(
+                    message: 'Configurações',
+                    child: MouseRegion(
+                      onEnter: (_) => _editHover.value = true,
+                      onExit: (_) => _editHover.value = false,
+                      child: Obx(
+                        () => IconButton(
+                          icon: Icon(
+                            Icons.settings,
+                            color: _editHover.value
+                                ? textColor
+                                : Colors.grey.withOpacity(0.5),
+                            size: 22,
+                          ),
+                          onPressed: () =>
+                              _openSettingsWithPassword(context),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
                       ),
                     ),
-                    onTap: () => {
-                      if (DesktopSettingPage.tabKeys.isNotEmpty)
-                        {
-                          DesktopSettingPage.switch2page(
-                              DesktopSettingPage.tabKeys[0])
-                        }
-                    },
-                    onHover: (value) => _editHover.value = value,
                   ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // ID
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Seu número de acesso',
+                    style: TextStyle(fontSize: 12, color: subtitleColor),
+                  ),
+                  const SizedBox(height: 6),
+                  Consumer<ServerModel>(
+                    builder: (_, m, __) => GestureDetector(
+                      onDoubleTap: () {
+                        Clipboard.setData(
+                            ClipboardData(text: m.serverId.text));
+                        showToast(translate('Copied'));
+                      },
+                      child: Text(
+                        m.serverId.text,
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+              child: Divider(),
+            ),
+
+            // Senha temporária
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Senha temporária',
+                    style: TextStyle(fontSize: 12, color: subtitleColor),
+                  ),
+                  const SizedBox(height: 6),
+                  Consumer<ServerModel>(
+                    builder: (_, m, __) {
+                      final showPwd = m.approveMode != 'click' &&
+                          m.verificationMethod !=
+                              kUsePermanentPassword;
+                      return Text(
+                        showPwd ? m.serverPasswd.text : '——',
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 2,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 28),
+
+            // Instrução
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                'Informe estes dados à equipe da UCSN Tecnologia para que possam acessar este computador.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: subtitleColor,
+                  height: 1.5,
                 ),
-              )
+              ),
+            ),
+
+            const Spacer(),
+
+            // Rodapé
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.lock_outline,
+                      size: 13, color: Colors.grey.withOpacity(0.5)),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Configurações protegidas por senha',
+                    style: TextStyle(
+                        fontSize: 11, color: Colors.grey.withOpacity(0.5)),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  void _openSettingsWithPassword(BuildContext context) {
+    final ctrl = TextEditingController();
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Configurações'),
+        content: TextField(
+          controller: ctrl,
+          obscureText: true,
+          autofocus: true,
+          decoration:
+              const InputDecoration(labelText: 'Senha de acesso'),
+          onSubmitted: (_) =>
+              _tryOpenSettings(dialogContext, ctrl),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () =>
+                _tryOpenSettings(dialogContext, ctrl),
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _tryOpenSettings(
+      BuildContext dialogContext, TextEditingController ctrl) {
+    if (ctrl.text == '@78UCsn22') {
+      Navigator.pop(dialogContext);
+      DesktopTabPage.onAddSetting();
+    } else {
+      showToast('Senha incorreta');
+    }
   }
 
   buildRightPane(BuildContext context) {
