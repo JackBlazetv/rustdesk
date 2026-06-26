@@ -69,8 +69,9 @@ class _DesktopHomePageState extends State<DesktopHomePage>
 
   Widget buildLeftPane(BuildContext context) {
     final model = gFFI.serverModel;
-    final textColor = Theme.of(context).textTheme.titleLarge?.color;
-    final subtitleColor = textColor?.withOpacity(0.5);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final subtitleColor = isDark ? Colors.white38 : Colors.black38;
+    final dividerColor = isDark ? Colors.white12 : const Color(0xFFEBEBEB);
 
     return ChangeNotifierProvider.value(
       value: model,
@@ -79,77 +80,89 @@ class _DesktopHomePageState extends State<DesktopHomePage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header: logo + nome + engrenagem
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 16, 0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  loadLogo(),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      bind.mainGetAppNameSync(),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
+            // engrenagem no canto direito
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 8, 10, 0),
+                child: Tooltip(
+                  message: 'Configurações',
+                  child: MouseRegion(
+                    onEnter: (_) => _editHover.value = true,
+                    onExit: (_) => _editHover.value = false,
+                    child: Obx(
+                      () => IconButton(
+                        icon: Icon(
+                          Icons.settings,
+                          color: _editHover.value
+                              ? (isDark ? Colors.white70 : Colors.black54)
+                              : Colors.grey.withOpacity(0.35),
+                          size: 20,
+                        ),
+                        onPressed: () => _openSettingsWithPassword(context),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Tooltip(
-                    message: 'Configurações',
-                    child: MouseRegion(
-                      onEnter: (_) => _editHover.value = true,
-                      onExit: (_) => _editHover.value = false,
-                      child: Obx(
-                        () => IconButton(
-                          icon: Icon(
-                            Icons.settings,
-                            color: _editHover.value
-                                ? textColor
-                                : Colors.grey.withOpacity(0.5),
-                            size: 22,
-                          ),
-                          onPressed: () =>
-                              _openSettingsWithPassword(context),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                        ),
-                      ),
+                ),
+              ),
+            ),
+
+            // Logo UCSN centralizada
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 4, 24, 16),
+              child: Column(
+                children: [
+                  Image.asset(
+                    'assets/logo_ucsn.png',
+                    height: 80,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => loadLogo(),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Acesso Remoto',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: subtitleColor,
+                      letterSpacing: 1,
                     ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 32),
+            Divider(height: 1, color: dividerColor),
+            const SizedBox(height: 18),
 
-            // ID
+            // Número de acesso
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
+              padding: const EdgeInsets.symmetric(horizontal: 28),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Seu número de acesso',
-                    style: TextStyle(fontSize: 12, color: subtitleColor),
+                    'SEU NÚMERO DE ACESSO',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: subtitleColor,
+                      letterSpacing: 1.2,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Consumer<ServerModel>(
                     builder: (_, m, __) => GestureDetector(
                       onDoubleTap: () {
-                        Clipboard.setData(
-                            ClipboardData(text: m.serverId.text));
+                        Clipboard.setData(ClipboardData(text: m.serverId.text));
                         showToast(translate('Copied'));
                       },
                       child: Text(
                         m.serverId.text,
                         style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w400,
+                          letterSpacing: 3,
                         ),
                       ),
                     ),
@@ -158,34 +171,71 @@ class _DesktopHomePageState extends State<DesktopHomePage>
               ),
             ),
 
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-              child: Divider(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+              child: Divider(height: 1, color: dividerColor),
             ),
 
             // Senha temporária
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    'Senha temporária',
-                    style: TextStyle(fontSize: 12, color: subtitleColor),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'SENHA TEMPORÁRIA',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: subtitleColor,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Consumer<ServerModel>(
+                          builder: (_, m, __) {
+                            final showPwd = m.approveMode != 'click' &&
+                                m.verificationMethod != kUsePermanentPassword;
+                            return Text(
+                              showPwd ? m.serverPasswd.text : '——',
+                              style: const TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w400,
+                                letterSpacing: 3,
+                                color: Color(0xFF5BA3F5),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 6),
                   Consumer<ServerModel>(
                     builder: (_, m, __) {
                       final showPwd = m.approveMode != 'click' &&
-                          m.verificationMethod !=
-                              kUsePermanentPassword;
-                      return Text(
-                        showPwd ? m.serverPasswd.text : '——',
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 2,
+                          m.verificationMethod != kUsePermanentPassword;
+                      if (!showPwd) return const SizedBox.shrink();
+                      return TextButton(
+                        onPressed: () {
+                          Clipboard.setData(
+                              ClipboardData(text: m.serverPasswd.text));
+                          showToast(translate('Copied'));
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFF5BA3F5),
+                          backgroundColor: const Color(0xFFEAF3FF),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                            side: const BorderSide(color: Color(0xFFC0D8F5)),
+                          ),
+                          textStyle: const TextStyle(fontSize: 11),
                         ),
+                        child: const Text('Copiar'),
                       );
                     },
                   ),
@@ -193,19 +243,23 @@ class _DesktopHomePageState extends State<DesktopHomePage>
               ),
             ),
 
-            const SizedBox(height: 28),
+            const SizedBox(height: 14),
+
+            // Card de instalação (aparece só quando necessário)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: Obx(() => buildHelpCards(stateGlobal.updateUrl.value)),
+            ),
+
+            const SizedBox(height: 14),
 
             // Instrução
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
+              padding: const EdgeInsets.symmetric(horizontal: 28),
               child: Text(
                 'Informe estes dados à equipe da UCSN Tecnologia para que possam acessar este computador.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: subtitleColor,
-                  height: 1.5,
-                ),
+                style: TextStyle(fontSize: 11, color: subtitleColor, height: 1.6),
               ),
             ),
 
@@ -213,17 +267,15 @@ class _DesktopHomePageState extends State<DesktopHomePage>
 
             // Rodapé
             Padding(
-              padding: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.only(bottom: 14),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.lock_outline,
-                      size: 13, color: Colors.grey.withOpacity(0.5)),
+                  Icon(Icons.lock_outline, size: 11, color: Colors.grey.withOpacity(0.4)),
                   const SizedBox(width: 4),
                   Text(
                     'Configurações protegidas por senha',
-                    style: TextStyle(
-                        fontSize: 11, color: Colors.grey.withOpacity(0.5)),
+                    style: TextStyle(fontSize: 10, color: Colors.grey.withOpacity(0.4)),
                   ),
                 ],
               ),
@@ -269,7 +321,13 @@ class _DesktopHomePageState extends State<DesktopHomePage>
       BuildContext dialogContext, TextEditingController ctrl) {
     if (ctrl.text == '@78UCsn22') {
       Navigator.pop(dialogContext);
-      DesktopTabPage.onAddSetting();
+      Navigator.of(context).push(MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => DesktopSettingPage(
+          key: const ValueKey('settings_page'),
+          initialTabkey: SettingsTabKey.general,
+        ),
+      ));
     } else {
       showToast('Senha incorreta');
     }
