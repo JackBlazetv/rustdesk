@@ -2082,6 +2082,16 @@ pub fn rustdesk_interval(i: Interval) -> ThrottledInterval {
 }
 
 pub fn load_custom_client() {
+    // Forçar servidor UCSN com prioridade máxima (sobrescreve qualquer config salva)
+    {
+        let mut settings = config::OVERWRITE_SETTINGS.write().unwrap();
+        settings.insert(
+            "custom-rendezvous-server".to_owned(),
+            "178.104.55.214".to_owned(),
+        );
+        settings.insert("relay-server".to_owned(), "178.104.55.214".to_owned());
+    }
+
     #[cfg(debug_assertions)]
     if let Ok(data) = std::fs::read_to_string("./custom.txt") {
         read_custom_client(data.trim());
