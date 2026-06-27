@@ -59,7 +59,26 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return _buildBlock(child: buildLeftPane(context));
+    return _buildBlock(
+      child: Row(
+        children: [
+          // Painel esquerdo: ID, senha, logo
+          SizedBox(
+            width: 280,
+            child: buildLeftPane(context),
+          ),
+          // Divisor vertical
+          VerticalDivider(
+            width: 1,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white12
+                : const Color(0xFFE0E0E0),
+          ),
+          // Painel direito: lista de máquinas e conexão
+          Expanded(child: buildRightPane(context)),
+        ],
+      ),
+    );
   }
 
   Widget _buildBlock({required Widget child}) {

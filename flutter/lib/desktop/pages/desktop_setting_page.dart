@@ -80,7 +80,7 @@ class DesktopSettingPage extends StatefulWidget {
     if (isWindows &&
         bind.mainGetBuildinOption(key: kOptionHideRemotePrinterSetting) != 'Y')
       SettingsTabKey.printer,
-    // aba "Sobre" ocultada intencionalmente
+    SettingsTabKey.about,
   ];
 
   DesktopSettingPage({Key? key, required this.initialTabkey}) : super(key: key);
@@ -2364,88 +2364,141 @@ class _AboutState extends State<_About> {
   @override
   Widget build(BuildContext context) {
     return futureBuilder(future: () async {
-      final license = await bind.mainGetLicense();
       final version = await bind.mainGetVersion();
-      final buildDate = await bind.mainGetBuildDate();
-      final fingerprint = await bind.mainGetFingerprint();
-      return {
-        'license': license,
-        'version': version,
-        'buildDate': buildDate,
-        'fingerprint': fingerprint
-      };
+      return {'version': version};
     }(), hasData: (data) {
-      final license = data['license'].toString();
       final version = data['version'].toString();
-      final buildDate = data['buildDate'].toString();
-      final fingerprint = data['fingerprint'].toString();
-      const linkStyle = TextStyle(decoration: TextDecoration.underline);
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final subtitleColor = isDark ? Colors.white54 : Colors.black45;
       final scrollController = ScrollController();
       return SingleChildScrollView(
         controller: scrollController,
-        child: _Card(title: translate('About RustDesk'), children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(
-                height: 8.0,
+              // Logo
+              Image.asset(
+                'assets/logo_ucsn.png',
+                height: 72,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 72),
               ),
-              SelectionArea(
-                  child: Text('${translate('Version')}: $version')
-                      .marginSymmetric(vertical: 4.0)),
-              SelectionArea(
-                  child: Text('${translate('Build Date')}: $buildDate')
-                      .marginSymmetric(vertical: 4.0)),
-              if (!isWeb)
-                SelectionArea(
-                    child: Text('${translate('Fingerprint')}: $fingerprint')
-                        .marginSymmetric(vertical: 4.0)),
-              InkWell(
-                  onTap: () {
-                    launchUrlString('https://rustdesk.com/privacy.html');
-                  },
-                  child: Text(
-                    translate('Privacy Statement'),
-                    style: linkStyle,
-                  ).marginSymmetric(vertical: 4.0)),
-              InkWell(
-                  onTap: () {
-                    launchUrlString('https://rustdesk.com');
-                  },
-                  child: Text(
-                    translate('Website'),
-                    style: linkStyle,
-                  ).marginSymmetric(vertical: 4.0)),
+              const SizedBox(height: 16),
+
+              // Nome do app
+              const Text(
+                'UCSN Acesso Remoto',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Versão $version',
+                style: TextStyle(fontSize: 13, color: subtitleColor),
+              ),
+              const SizedBox(height: 28),
+
+              const Divider(),
+              const SizedBox(height: 20),
+
+              // Desenvolvido por
+              Text(
+                'Desenvolvido e customizado por',
+                style: TextStyle(fontSize: 12, color: subtitleColor),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Henrique Andrade',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 28),
+
+              // Suporte
               Container(
-                decoration: const BoxDecoration(color: Color(0xFF2c8cff)),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
-                child: SelectionArea(
-                    child: Row(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1A2A3A) : const Color(0xFFEAF3FF),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF2A4A6A) : const Color(0xFFC0D8F5),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Copyright © ${DateTime.now().toString().substring(0, 4)} Purslane Ltd.\n$license',
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                          Text(
-                            translate('Slogan_tip'),
-                            style: TextStyle(
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white),
-                          )
-                        ],
+                    Text(
+                      'SUPORTE',
+                      style: TextStyle(
+                        fontSize: 10,
+                        letterSpacing: 1.5,
+                        color: subtitleColor,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Icon(Icons.chat_bubble_outline, size: 16, color: Color(0xFF5BA3F5)),
+                        const SizedBox(width: 8),
+                        const Text('WhatsApp: ', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                        SelectionArea(
+                          child: Text(
+                            '(75) 99890-6062',
+                            style: TextStyle(fontSize: 13, color: subtitleColor),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.email_outlined, size: 16, color: Color(0xFF5BA3F5)),
+                        const SizedBox(width: 8),
+                        const Text('E-mail: ', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                        SelectionArea(
+                          child: Text(
+                            'lhajolh@gmail.com',
+                            style: TextStyle(fontSize: 13, color: subtitleColor),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
-                )),
-              ).marginSymmetric(vertical: 4.0)
+                ),
+              ),
+
+              const SizedBox(height: 28),
+              const Divider(),
+              const SizedBox(height: 12),
+
+              // Rodapé open source
+              Text(
+                'Baseado em RustDesk (software open source)',
+                style: TextStyle(fontSize: 11, color: subtitleColor),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              InkWell(
+                onTap: () => launchUrlString('https://github.com/rustdesk/rustdesk'),
+                child: Text(
+                  'github.com/rustdesk/rustdesk',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: const Color(0xFF5BA3F5),
+                    decoration: TextDecoration.underline,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 24),
             ],
-          ).marginOnly(left: _kContentHMargin)
-        ]),
+          ),
+        ),
       );
     });
   }
