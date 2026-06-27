@@ -80,7 +80,7 @@ class DesktopSettingPage extends StatefulWidget {
     if (isWindows &&
         bind.mainGetBuildinOption(key: kOptionHideRemotePrinterSetting) != 'Y')
       SettingsTabKey.printer,
-    SettingsTabKey.about,
+    // aba "Sobre" ocultada intencionalmente
   ];
 
   DesktopSettingPage({Key? key, required this.initialTabkey}) : super(key: key);
@@ -317,28 +317,22 @@ class _DesktopSettingPageState extends State<DesktopSettingPage>
     );
     return Row(
       children: [
-        if (isWeb)
-          IconButton(
-            onPressed: () {
-              if (Navigator.canPop(context)) {
-                Navigator.pop(context);
-              }
-            },
-            icon: Icon(Icons.arrow_back),
-          ).marginOnly(left: 5),
-        if (isWeb)
-          SizedBox(
-            height: 62,
-            child: Align(
-              alignment: Alignment.center,
-              child: settingsText,
-            ),
-          ).marginOnly(left: 20),
-        if (!isWeb)
-          SizedBox(
-            height: 62,
+        IconButton(
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+          },
+          icon: const Icon(Icons.arrow_back, size: 20),
+          tooltip: 'Voltar',
+        ).marginOnly(left: 5),
+        SizedBox(
+          height: 62,
+          child: Align(
+            alignment: Alignment.center,
             child: settingsText,
-          ).marginOnly(left: 20, top: 10),
+          ),
+        ).marginOnly(left: 8),
         const Spacer(),
       ],
     );
@@ -355,39 +349,44 @@ class _DesktopSettingPageState extends State<DesktopSettingPage>
   Widget _listItem({required _TabInfo tab}) {
     return Obx(() {
       bool selected = tab.key == selectedTab.value;
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final selectedBg = isDark ? const Color(0xFF2D5A9E) : const Color(0xFFCCE4F7);
+      final selectedText = isDark ? Colors.white : const Color(0xFF003399);
+      final normalText = isDark ? Colors.white70 : Colors.black87;
       return SizedBox(
         width: _kTabWidth,
         height: _kTabHeight,
-        child: InkWell(
-          onTap: () {
-            if (selectedTab.value != tab.key) {
-              int index = DesktopSettingPage.tabKeys.indexOf(tab.key);
-              if (index == -1) {
-                return;
+        child: Material(
+          color: selected ? selectedBg : Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              if (selectedTab.value != tab.key) {
+                int index = DesktopSettingPage.tabKeys.indexOf(tab.key);
+                if (index == -1) return;
+                controller.jumpToPage(index);
               }
-              controller.jumpToPage(index);
-            }
-            selectedTab.value = tab.key;
-          },
-          child: Row(children: [
-            Container(
-              width: 4,
-              height: _kTabHeight * 0.7,
-              color: selected ? _accentColor : null,
+              selectedTab.value = tab.key;
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(children: [
+                Icon(
+                  selected ? tab.selected : tab.unselected,
+                  color: selected ? selectedText : normalText,
+                  size: 18,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  translate(tab.label),
+                  style: TextStyle(
+                    color: selected ? selectedText : normalText,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                    fontSize: _kContentFontSize,
+                  ),
+                ),
+              ]),
             ),
-            Icon(
-              selected ? tab.selected : tab.unselected,
-              color: selected ? _accentColor : null,
-              size: 20,
-            ).marginOnly(left: 13, right: 10),
-            Text(
-              translate(tab.label),
-              style: TextStyle(
-                  color: selected ? _accentColor : null,
-                  fontWeight: FontWeight.w400,
-                  fontSize: _kContentFontSize),
-            ),
-          ]),
+          ),
         ),
       );
     });
