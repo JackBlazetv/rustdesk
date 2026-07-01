@@ -2482,19 +2482,6 @@ class _AboutState extends State<_About> {
                 style: TextStyle(fontSize: 11, color: subtitleColor),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 4),
-              InkWell(
-                onTap: () => launchUrlString('https://github.com/rustdesk/rustdesk'),
-                child: Text(
-                  'github.com/rustdesk/rustdesk',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: const Color(0xFF5BA3F5),
-                    decoration: TextDecoration.underline,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
               const SizedBox(height: 24),
             ],
           ),
