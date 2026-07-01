@@ -158,32 +158,60 @@ class _DesktopHomePageState extends State<DesktopHomePage>
             // Número de acesso
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 28),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    'SEU NÚMERO DE ACESSO',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: subtitleColor,
-                      letterSpacing: 1.2,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'SEU NÚMERO DE ACESSO',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: subtitleColor,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Consumer<ServerModel>(
+                          builder: (_, m, __) => GestureDetector(
+                            onDoubleTap: () {
+                              Clipboard.setData(
+                                  ClipboardData(text: m.serverId.text));
+                              showToast(translate('Copied'));
+                            },
+                            child: Text(
+                              m.serverId.text,
+                              style: const TextStyle(
+                                fontSize: 30,
+                                fontWeight: FontWeight.w400,
+                                letterSpacing: 3,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 6),
                   Consumer<ServerModel>(
-                    builder: (_, m, __) => GestureDetector(
-                      onDoubleTap: () {
+                    builder: (_, m, __) => TextButton(
+                      onPressed: () {
                         Clipboard.setData(ClipboardData(text: m.serverId.text));
                         showToast(translate('Copied'));
                       },
-                      child: Text(
-                        m.serverId.text,
-                        style: const TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.w400,
-                          letterSpacing: 3,
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFF5BA3F5),
+                        backgroundColor: const Color(0xFFEAF3FF),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                          side: const BorderSide(color: Color(0xFFC0D8F5)),
                         ),
+                        textStyle: const TextStyle(fontSize: 11),
                       ),
+                      child: const Text('Copiar'),
                     ),
                   ),
                 ],

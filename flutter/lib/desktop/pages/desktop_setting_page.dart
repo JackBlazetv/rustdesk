@@ -2475,14 +2475,6 @@ class _AboutState extends State<_About> {
               const SizedBox(height: 28),
               const Divider(),
               const SizedBox(height: 12),
-
-              // Rodapé open source
-              Text(
-                'Baseado em RustDesk (software open source)',
-                style: TextStyle(fontSize: 11, color: subtitleColor),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
             ],
           ),
         ),
