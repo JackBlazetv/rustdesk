@@ -2389,7 +2389,7 @@ class _AboutState extends State<_About> {
 
               // Nome do app
               const Text(
-                'UCSN Acesso Remoto',
+                'UCSN - Acesso Remoto',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                 textAlign: TextAlign.center,
               ),

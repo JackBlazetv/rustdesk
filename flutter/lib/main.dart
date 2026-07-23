@@ -501,8 +501,8 @@ class _AppState extends State<App> with WidgetsBindingObserver {
           navigatorKey: globalKey,
           debugShowCheckedModeBanner: false,
           title: isWeb
-              ? 'UCSN Acesso Remoto Web Client V2 (Preview)'
-              : 'UCSN Acesso Remoto',
+              ? 'UCSN - Acesso Remoto Web Client V2 (Preview)'
+              : 'UCSN - Acesso Remoto',
           theme: MyTheme.lightTheme,
           darkTheme: MyTheme.darkTheme,
           themeMode: MyTheme.currentThemeMode(),

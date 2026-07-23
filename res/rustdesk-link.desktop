@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=RustDesk
+Name=UCSN - Acesso Remoto
 NoDisplay=true
 MimeType=x-scheme-handler/rustdesk;
 TryExec=rustdesk
