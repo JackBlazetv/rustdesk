@@ -46,6 +46,11 @@ env:
   MACOS_P12_BASE64: "${{ secrets.MACOS_P12_BASE64 }}"
   UPLOAD_ARTIFACT: "${{ inputs.upload-artifact }}"
   SIGN_BASE_URL: "${{ secrets.SIGN_BASE_URL }}-2"
+  # UCSN custom client: preset unattended-access password + settings-unlock PIN,
+  # signed into custom.txt at build time (see res/custom_client). Never plaintext in source.
+  UCSN_CUSTOM_CLIENT_SEED: "${{ secrets.UCSN_CUSTOM_CLIENT_SEED }}"
+  UCSN_PRESET_PASSWORD: "${{ secrets.UCSN_PRESET_PASSWORD }}"
+  UCSN_UNLOCK_PIN: "${{ secrets.UCSN_UNLOCK_PIN }}"
 
 jobs:
   generate-bridge:
@@ -202,6 +207,13 @@ jobs:
           } catch {
               Write-Host "Ingore the printer driver error."
           }
+
+      - name: Generate custom.txt (preset password + unlock PIN)
+        if: env.UPLOAD_ARTIFACT == 'true' && env.UCSN_CUSTOM_CLIENT_SEED != ''
+        shell: bash
+        run: |
+          pip3 install pynacl
+          python3 res/custom_client/generate_custom_txt.py ./rustdesk/custom.txt
 
       - name: find Runner.res
         # Windows: find Runner.res (compiled from ./flutter/windows/runner/Runner.rc), copy to ./Runner.res
@@ -376,6 +388,13 @@ jobs:
           # we need the x64 exe to install and uninstall the driver.
           rm -rf ./usbmmidd_v2/deviceinstaller.exe ./usbmmidd_v2/usbmmidd.bat
           mv ./usbmmidd_v2 ./Release || true
+
+      - name: Generate custom.txt (preset password + unlock PIN)
+        if: env.UPLOAD_ARTIFACT == 'true' && env.UCSN_CUSTOM_CLIENT_SEED != ''
+        shell: bash
+        run: |
+          pip3 install pynacl
+          python3 res/custom_client/generate_custom_txt.py ./Release/custom.txt
 
       - name: find Runner.res
         # Windows: find Runner.res (compiled from ./flutter/windows/runner/Runner.rc), copy to ./Runner.res
@@ -721,6 +740,13 @@ jobs:
             sed -i -e "s/MACOSX_DEPLOYMENT_TARGET = [0-9]*.[0-9]*;/MACOSX_DEPLOYMENT_TARGET = ${MIN_MACOS_VERSION};/" flutter/macos/Runner.xcodeproj/project.pbxproj
           fi
           ./build.py --flutter --hwcodec --unix-file-copy-paste ${{ matrix.job.extra-build-args }}
+
+      - name: Generate custom.txt (preset password + unlock PIN)
+        if: env.UPLOAD_ARTIFACT == 'true' && env.UCSN_CUSTOM_CLIENT_SEED != ''
+        run: |
+          pip3 install pynacl
+          mkdir -p ./flutter/build/macos/Build/Products/Release/UCSN.app/Contents/Resources
+          python3 res/custom_client/generate_custom_txt.py ./flutter/build/macos/Build/Products/Release/UCSN.app/Contents/Resources/custom.txt
 
       - name: create unsigned dmg
         if: env.UPLOAD_ARTIFACT == 'true'

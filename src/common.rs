@@ -2198,7 +2198,7 @@ pub fn read_custom_client(config: &str) {
         log::error!("Failed to decode custom client config");
         return;
     };
-    const KEY: &str = "5Qbwsde3unUcJBtrx9ZkvUmwFNoExHzpryHuPUdqlWM=";
+    const KEY: &str = "crzSKrPuWtGXuZagJU3KSbeLa9h4Jkh/A1oP8spqveQ=";
     let Some(pk) = get_rs_pk(KEY) else {
         log::error!("Failed to parse public key of custom client");
         return;
@@ -2263,6 +2263,17 @@ pub fn read_custom_client(config: &str) {
                 .unwrap()
                 .insert(k, v.to_owned());
         };
+    }
+
+    // Apply the preset unlock PIN once, on first run only. This lets "Unlock
+    // Security Settings" use the in-app PIN dialog instead of a Windows UAC
+    // prompt, which can't be interacted with over a remote session.
+    if Config::get_unlock_pin().is_empty() {
+        if let Some(pin) = config::HARD_SETTINGS.read().unwrap().get("unlock-pin") {
+            if !pin.is_empty() {
+                Config::set_unlock_pin(pin);
+            }
+        }
     }
 }
 
