@@ -744,7 +744,7 @@ jobs:
       - name: Generate custom.txt (preset password + unlock PIN)
         if: env.UPLOAD_ARTIFACT == 'true' && env.UCSN_CUSTOM_CLIENT_SEED != ''
         run: |
-          pip3 install pynacl
+          pip3 install --break-system-packages pynacl
           mkdir -p ./flutter/build/macos/Build/Products/Release/UCSN.app/Contents/Resources
           python3 res/custom_client/generate_custom_txt.py ./flutter/build/macos/Build/Products/Release/UCSN.app/Contents/Resources/custom.txt
 
