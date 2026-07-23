@@ -2264,17 +2264,6 @@ pub fn read_custom_client(config: &str) {
                 .insert(k, v.to_owned());
         };
     }
-
-    // Apply the preset unlock PIN once, on first run only. This lets "Unlock
-    // Security Settings" use the in-app PIN dialog instead of a Windows UAC
-    // prompt, which can't be interacted with over a remote session.
-    if Config::get_unlock_pin().is_empty() {
-        if let Some(pin) = config::HARD_SETTINGS.read().unwrap().get("unlock-pin") {
-            if !pin.is_empty() {
-                Config::set_unlock_pin(pin);
-            }
-        }
-    }
 }
 
 #[inline]
