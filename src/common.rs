@@ -2081,21 +2081,7 @@ pub fn rustdesk_interval(i: Interval) -> ThrottledInterval {
     ThrottledInterval::new(i)
 }
 
-#[inline]
-pub fn ucsn_debug_checkpoint(msg: &str) {
-    use std::io::Write;
-    if let Ok(mut f) = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open("C:\\ucsn_debug.log")
-    {
-        let _ = writeln!(f, "{}", msg);
-        let _ = f.flush();
-    }
-}
-
 pub fn load_custom_client() {
-    ucsn_debug_checkpoint("load_custom_client: start");
     // Forçar servidor UCSN com prioridade máxima (sobrescreve qualquer config salva)
     {
         let mut settings = config::OVERWRITE_SETTINGS.write().unwrap();
@@ -2109,38 +2095,26 @@ pub fn load_custom_client() {
             "2Up0FGrq1+J2QHqu9K7RJWOK6AFn0nu87chVG9B13C8=".to_owned(),
         );
     }
-    ucsn_debug_checkpoint("load_custom_client: after overwrite_settings");
 
     #[cfg(debug_assertions)]
     if let Ok(data) = std::fs::read_to_string("./custom.txt") {
         read_custom_client(data.trim());
         return;
     }
-    ucsn_debug_checkpoint("load_custom_client: before current_exe");
     let Some(path) = std::env::current_exe().map_or(None, |x| x.parent().map(|x| x.to_path_buf()))
     else {
-        ucsn_debug_checkpoint("load_custom_client: current_exe/parent failed, returning");
         return;
     };
-    ucsn_debug_checkpoint("load_custom_client: got exe parent path");
     #[cfg(target_os = "macos")]
     let path = path.join("../Resources");
     let path = path.join("custom.txt");
-    ucsn_debug_checkpoint(&format!("load_custom_client: checking is_file for {:?}", path));
     if path.is_file() {
-        ucsn_debug_checkpoint("load_custom_client: is_file=true, reading");
         let Ok(data) = std::fs::read_to_string(&path) else {
-            ucsn_debug_checkpoint("load_custom_client: read_to_string failed");
             log::error!("Failed to read custom client config");
             return;
         };
-        ucsn_debug_checkpoint(&format!("load_custom_client: read {} bytes, calling read_custom_client", data.len()));
         read_custom_client(&data.trim());
-        ucsn_debug_checkpoint("load_custom_client: read_custom_client returned");
-    } else {
-        ucsn_debug_checkpoint("load_custom_client: is_file=false");
     }
-    ucsn_debug_checkpoint("load_custom_client: end");
 }
 
 fn read_custom_client_advanced_settings(
@@ -2220,41 +2194,31 @@ pub fn get_dst_align_rgba() -> usize {
 }
 
 pub fn read_custom_client(config: &str) {
-    ucsn_debug_checkpoint("read_custom_client: start");
     let Ok(data) = decode64(config) else {
-        ucsn_debug_checkpoint("read_custom_client: decode64 failed");
         log::error!("Failed to decode custom client config");
         return;
     };
-    ucsn_debug_checkpoint(&format!("read_custom_client: decode64 ok, {} bytes", data.len()));
-    const KEY: &str = "crzSKrPuWtGXuZagJU3KSbeLa9h4Jkh/A1oP8spqveQ=";
+    const KEY: &str = "5Qbwsde3unUcJBtrx9ZkvUmwFNoExHzpryHuPUdqlWM=";
     let Some(pk) = get_rs_pk(KEY) else {
-        ucsn_debug_checkpoint("read_custom_client: get_rs_pk failed");
         log::error!("Failed to parse public key of custom client");
         return;
     };
-    ucsn_debug_checkpoint("read_custom_client: got pk, calling sign::verify");
     let Ok(data) = sign::verify(&data, &pk) else {
-        ucsn_debug_checkpoint("read_custom_client: sign::verify failed (invalid signature)");
         log::error!("Failed to dec custom client config");
         return;
     };
-    ucsn_debug_checkpoint("read_custom_client: sign::verify ok, parsing json");
     let Ok(mut data) =
         serde_json::from_slice::<std::collections::HashMap<String, serde_json::Value>>(&data)
     else {
-        ucsn_debug_checkpoint("read_custom_client: json parse failed");
         log::error!("Failed to parse custom client config");
         return;
     };
-    ucsn_debug_checkpoint(&format!("read_custom_client: json ok, {} keys", data.len()));
 
     if let Some(app_name) = data.remove("app-name") {
         if let Some(app_name) = app_name.as_str() {
             *config::APP_NAME.write().unwrap() = app_name.to_owned();
         }
     }
-    ucsn_debug_checkpoint("read_custom_client: after app-name");
 
     let mut map_display_settings = HashMap::new();
     for s in keys::KEYS_DISPLAY_SETTINGS {
@@ -2272,7 +2236,6 @@ pub fn read_custom_client(config: &str) {
     for s in keys::KEYS_BUILDIN_SETTINGS {
         buildin_settings.insert(s.replace("_", "-"), s);
     }
-    ucsn_debug_checkpoint("read_custom_client: built key maps");
     if let Some(default_settings) = data.remove("default-settings") {
         read_custom_client_advanced_settings(
             default_settings,
@@ -2293,7 +2256,6 @@ pub fn read_custom_client(config: &str) {
             true,
         );
     }
-    ucsn_debug_checkpoint("read_custom_client: after advanced settings, entering hard_settings loop");
     for (k, v) in data {
         if let Some(v) = v.as_str() {
             config::HARD_SETTINGS
@@ -2302,7 +2264,6 @@ pub fn read_custom_client(config: &str) {
                 .insert(k, v.to_owned());
         };
     }
-    ucsn_debug_checkpoint("read_custom_client: end");
 }
 
 #[inline]
