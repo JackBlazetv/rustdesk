@@ -32,12 +32,16 @@ pub fn core_main() -> Option<Vec<String>> {
     if !crate::common::global_init() {
         return None;
     }
+    crate::common::ucsn_debug_checkpoint("core_main: before load_custom_client");
     crate::load_custom_client();
+    crate::common::ucsn_debug_checkpoint("core_main: after load_custom_client");
     #[cfg(windows)]
     if !crate::platform::windows::bootstrap() {
+        crate::common::ucsn_debug_checkpoint("core_main: bootstrap returned false");
         // return None to terminate the process
         return None;
     }
+    crate::common::ucsn_debug_checkpoint("core_main: after bootstrap");
     let mut args = Vec::new();
     let mut flutter_args = Vec::new();
     let mut i = 0;
