@@ -1005,6 +1005,16 @@ pub fn get_app_name() -> String {
     hbb_common::config::APP_NAME.read().unwrap().clone()
 }
 
+/// Human-facing app name used for things the user actually sees: desktop/
+/// start menu shortcut labels, the "Add or Remove Programs" entry, etc.
+/// `get_app_name()` stays a plain identifier (no spaces/punctuation) because
+/// it also feeds the URI scheme, registry key names, and file extension
+/// registration, which don't tolerate special characters.
+#[inline]
+pub fn get_app_display_name() -> String {
+    "UCSN - Acesso Remoto".to_owned()
+}
+
 #[inline]
 pub fn is_rustdesk() -> bool {
     hbb_common::config::APP_NAME.read().unwrap().eq("RustDesk")
