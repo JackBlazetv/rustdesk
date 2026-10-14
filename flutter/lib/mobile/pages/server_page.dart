@@ -209,10 +209,12 @@ class _ServerPageState extends State<ServerPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
+                        ucsnHeader(context),
                         buildPresetPasswordWarningMobile(),
                         gFFI.serverModel.isStart
                             ? ServerInfo()
                             : ServiceNotRunningNotification(),
+                        if (gFFI.serverModel.isStart) ucsnInstruction(context),
                         const ConnectionManager(),
                         const PermissionChecker(),
                         SizedBox.fromSize(size: const Size(0, 15.0)),
@@ -961,5 +963,45 @@ void showScamWarning(BuildContext context, ServerModel serverModel) {
     builder: (BuildContext context) {
       return ScamWarningDialog(serverModel: serverModel);
     },
+  );
+}
+
+// Cabecalho UCSN - espelha o layout das paginas desktop
+Widget ucsnHeader(BuildContext context) {
+  final subtitleColor = Theme.of(context).textTheme.bodySmall?.color;
+  return Padding(
+    padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+    child: Column(
+      children: [
+        Image.asset(
+          'assets/logo_ucsn.png',
+          height: 64,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Acesso Remoto',
+          style: TextStyle(
+            fontSize: 11,
+            color: subtitleColor,
+            letterSpacing: 1,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+// Texto de instrucao equivalente ao do desktop, adaptado para dispositivo
+Widget ucsnInstruction(BuildContext context) {
+  final subtitleColor = Theme.of(context).textTheme.bodySmall?.color;
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
+    child: Text(
+      'Informe estes dados a equipe da UCSN Tecnologia para que possam acessar este dispositivo.',
+      textAlign: TextAlign.center,
+      style: TextStyle(fontSize: 11, color: subtitleColor, height: 1.6),
+    ),
   );
 }
