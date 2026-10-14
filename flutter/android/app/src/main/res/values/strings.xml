@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">UCSN - Acesso Remoto</string>
-    <string name="accessibility_service_description">Allow other devices to control your phone using virtual touch, when RustDesk screen sharing is established</string>
+    <string name="accessibility_service_description">Permitir que outros dispositivos controlem este telefone por toque virtual, quando o compartilhamento de tela do UCSN estiver ativo</string>
+    <string name="app_name_input">UCSN - Entrada</string>
 </resources>

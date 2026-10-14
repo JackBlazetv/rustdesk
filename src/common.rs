@@ -2097,9 +2097,9 @@ pub fn load_custom_client() {
         let mut settings = config::OVERWRITE_SETTINGS.write().unwrap();
         settings.insert(
             "custom-rendezvous-server".to_owned(),
-            "144.33.25.243".to_owned(),
+            "134.65.49.67".to_owned(),
         );
-        settings.insert("relay-server".to_owned(), "144.33.25.243".to_owned());
+        settings.insert("relay-server".to_owned(), "134.65.49.67".to_owned());
         settings.insert(
             "key".to_owned(),
             "0XhXehnESFKHDUk1MPKRm1l68FFZsnuI9f+bC1cl2W4=".to_owned(),
