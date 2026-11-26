@@ -115,8 +115,11 @@ class _DesktopTabPageState extends State<DesktopTabPage> {
               color: titleBarBg,
               child: Row(
                 children: [
-                  const SizedBox(width: 12),
+                  // No macOS os botões nativos (vermelho/amarelo/verde) ficam
+                  // à esquerda: só reservamos o espaço deles, sem botões próprios.
+                  SizedBox(width: isMacOS ? 78 : 12),
                   Expanded(child: Container()), // área de drag
+                  if (!isMacOS) ...[
                   // Minimizar
                   _TitleBarButton(
                     icon: Icons.remove,
@@ -144,6 +147,7 @@ class _DesktopTabPageState extends State<DesktopTabPage> {
                     hoverColor: Colors.red,
                     onTap: () => windowManager.hide(),
                   ),
+                  ],
                 ],
               ),
             ),
