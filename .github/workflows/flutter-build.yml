@@ -1011,6 +1011,11 @@ jobs:
           name: librustdesk.so.${{ matrix.job.target }}
           path: ./target/${{ matrix.job.target }}/release/liblibrustdesk.so
 
+      - name: Apply UCSN icon (Android)
+        shell: bash
+        run: |
+          bash res/android/ucsn-android-icons.sh res/icon.png flutter/android/app/src/main/res
+
       - name: Build rustdesk
         shell: bash
         env:
