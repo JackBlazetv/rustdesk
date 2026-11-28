@@ -26,7 +26,9 @@ fi
 
 WORK="$(mktemp -d)"
 # Remove a margem transparente da logo e deixa quadrada
-read -r W H < <($IM "$ICON_SRC" -trim -format '%w %h' info:)
+# o \n no final evita que o read retorne erro (set -e) por falta de quebra de linha
+read -r W H < <($IM "$ICON_SRC" -trim -format '%w %h\n' info:) || true
+[ -n "${W:-}" ] && [ -n "${H:-}" ] || { echo "nao consegui ler o tamanho de $ICON_SRC" >&2; exit 1; }
 M=$(( W > H ? W : H ))
 $IM "$ICON_SRC" -trim +repage -background none -gravity center -extent "${M}x${M}" "$WORK/logo.png"
 
